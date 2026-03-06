@@ -1,0 +1,26 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: basic-example
+  namespace: default
+spec:
+  flinkVersion: v1_17
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+    state.backend: rocksdb
+    state.checkpoints.dir: s3://flink-checkpoints/
+  jobManager:
+    replicas: 1
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    replicas: 2
+    resource:
+      memory: "4096m"
+      cpu: 2
+  job:
+    jarURI: s3://flink-jobs/StateMachineExample.jar
+    parallelism: 4
+    upgradeMode: stateful
+    state: running

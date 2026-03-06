@@ -1,0 +1,27 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: under-provisioned-example
+  namespace: default
+  labels:
+    scenario: parallelism-adjustment
+spec:
+  flinkVersion: v1_17
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+    state.backend: rocksdb
+  jobManager:
+    replicas: 1
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    replicas: 2  # Only 2 TaskManagers configured
+    resource:
+      memory: "4096m"
+      cpu: 2
+  job:
+    jarURI: s3://flink-jobs/HighParallelismJob.jar
+    parallelism: 10  # But parallelism requires 10 / 2 = 5 TaskManagers!
+    upgradeMode: stateful
+    state: running

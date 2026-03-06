@@ -1,0 +1,41 @@
+apiVersion: platform.confluent.io/v1beta1
+kind: FlinkApplication
+metadata:
+  name: basic-example
+  namespace: default
+spec:
+  # Reference the FlinkEnvironment above
+  flinkEnvironment: my-env1
+
+  # CP Flink image + version
+  image: confluentinc/cp-flink:1.19.1-cp2
+  flinkVersion: v1_19
+
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+    metrics.reporter.prom.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+    metrics.reporter.prom.port: "9249-9250"
+    rest.profiling.enabled: "true"
+
+  serviceAccount: flink
+
+  jobManager:
+    resource:
+      cpu: 1
+      memory: 1200m
+
+  taskManager:
+    resource:
+      cpu: 1
+      memory: 1200m
+
+  job:
+    jarURI: local:///opt/flink/examples/streaming/StateMachineExample.jar
+    parallelism: 3
+    state: running          # or "suspended"
+    upgradeMode: stateless  # or "savepoint", "last-state"
+
+  # CMF REST class (how CFK talks to CMF)
+  cmfRestClassRef:
+    name: default
+    namespace: operator

@@ -1,0 +1,30 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: ha-production-cluster
+  namespace: production
+  labels:
+    environment: production
+    tier: streaming
+spec:
+  flinkVersion: v1_18
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "4"
+    state.backend: rocksdb
+    high-availability: kubernetes
+    high-availability.storageDir: s3://flink-ha/
+  jobManager:
+    replicas: 3
+    resource:
+      memory: "4096m"
+      cpu: 2
+  taskManager:
+    replicas: 6
+    resource:
+      memory: "8192m"
+      cpu: 4
+  job:
+    jarURI: s3://flink-jobs/DataPipeline.jar
+    parallelism: 24
+    upgradeMode: stateful
+    state: running

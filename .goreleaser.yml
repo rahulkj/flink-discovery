@@ -1,0 +1,107 @@
+# GoReleaser configuration for flink-analyzer
+# Builds binaries for Linux, Darwin (macOS), and Windows on amd64 and arm64 architectures
+
+version: 2
+
+before:
+  hooks:
+    # Ensure dependencies are up to date
+    - go mod tidy
+    - go mod download
+
+builds:
+  - id: flink-analyzer
+    main: ./main.go
+    binary: flink-analyzer
+
+    # Target platforms and architectures
+    goos:
+      - linux
+      - darwin
+      - windows
+
+    goarch:
+      - amd64
+      - arm64
+
+    # Environment variables for the build
+    env:
+      - CGO_ENABLED=0
+
+    # Build flags
+    flags:
+      - -trimpath
+
+    # Linker flags for smaller binaries and version info
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+    format_overrides:
+      - goos: windows
+        format: zip
+
+    files:
+      - README.md
+      - LICENSE*
+      - docs/**/*
+      - examples/**/*
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - 'README'
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
+
+release:
+  # GitHub release configuration
+  github:
+    owner: confluent
+    name: flink-discovery
+
+  # Draft release (change to false for automatic release)
+  draft: false
+
+  # Prerelease detection
+  prerelease: auto
+
+  # Release notes
+  header: |
+    ## Flink Analyzer {{ .Tag }}
+
+    Download the binary for your platform below.
+
+  footer: |
+    **Full Changelog**: https://github.com/confluent/flink-discovery/compare/{{ .PreviousTag }}...{{ .Tag }}

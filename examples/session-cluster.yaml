@@ -1,0 +1,19 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: session-cluster
+  namespace: development
+spec:
+  flinkVersion: v1_17
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "3"
+  jobManager:
+    replicas: 1
+    resource:
+      memory: "1024m"
+      cpu: 0.5
+  taskManager:
+    replicas: 3
+    resource:
+      memory: "2048m"
+      cpu: 1
